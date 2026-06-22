@@ -5,7 +5,7 @@ import MonacoEditor from '@monaco-editor/react';
 
 interface EditorProps {
   value: string;
-  language?: string;
+  language: string;
   onChange?: (value: string | undefined) => void;
   readOnly?: boolean;
 }
