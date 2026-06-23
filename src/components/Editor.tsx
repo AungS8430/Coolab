@@ -1,37 +1,69 @@
-import React, { useRef } from 'react';
-import ReactDOM from 'react-dom';
+import { useRef } from 'react';
 
-import MonacoEditor from '@monaco-editor/react';
+import MonacoEditor, { type OnMount, type OnChange } from '@monaco-editor/react';
+import type * as Monaco from 'monaco-editor';
+
+import type { CursorPosition, EditorTheme } from '../types';
 
 interface EditorProps {
   value: string;
   language: string;
-  onChange?: (value: string | undefined) => void;
+  theme: EditorTheme;
+  onChange: (value: string) => void;
+  onCursorMove?: (position: CursorPosition | undefined) => void;
   readOnly?: boolean;
 }
 
-function Editor({ value, language, onChange, readOnly = false }: EditorProps) {
-  const editorRef = useRef<any>(null);
-  const monacoRef = useRef<any>(null);
+function Editor({
+  value,
+  language,
+  theme,
+  onChange,
+  onCursorMove,
+  readOnly = false
+}: EditorProps) {
+  const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<typeof Monaco | null>(null);
 
-  function handleMount(editor: any, monaco: any) {
+  const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
-    
+
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      target: monaco.languages.typescript.ScriptTarget.ESNext,
+      module: monaco.languages.typescript.ModuleKind.ESNext,
+      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+      strict: true,
+      jsx: monaco.languages.typescript.JsxEmit.React,
+      esModuleInterop: true,
+    })
+
+    editor.onDidChangeCursorPosition((e) => {
+      onCursorMove?.({
+        line: e.position.lineNumber,
+        column: e.position.column
+      })
+    })
+
     editor.focus();
+  }
+
+  const handleChange: OnChange = (value) => {
+    if (value !== undefined) onChange(value);
   }
   return (
     <MonacoEditor
-    height="90vh"
+    height="100%"
     language={language}
     value={value}
-    onChange={onChange}
+    onChange={handleChange}
     onMount={handleMount}
+    theme={theme}
     options={{
       fontSize: 14,
       fontFamily: '"JetBrains Mono", monospace',
       fontLigatures: true,
-      readOnly: readOnly,
+      readOnly,
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
       wordWrap: 'on',
@@ -49,4 +81,4 @@ function Editor({ value, language, onChange, readOnly = false }: EditorProps) {
   )
 }
 
-export default Editor;
+export { Editor };
