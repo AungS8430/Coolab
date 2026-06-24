@@ -9,7 +9,7 @@ function FileNameInput({ value, defaultValue, onChange, onKeyDown }: { value: st
 }
 
 function Sidebar() {
-  const { files, createFile, deleteFile, renameFile, openFile } = useFilesStore();
+  const { files, createFile, deleteFile, renameFile, openFile, activeFileId } = useFilesStore();
   const [newFileName, setNewFileName] = useState<string>("");
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -75,7 +75,7 @@ function Sidebar() {
         {
           files.map((file) => {
             return (
-              <div key={file.id}>
+              <div key={file.id} className={file.id === activeFileId ? 'active-file' : undefined}>
                 {
                   renamingId === file.id ? (
                     <>
