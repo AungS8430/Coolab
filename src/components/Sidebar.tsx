@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useFilesStore } from '../store/files';
 import type { FileNode } from '../types';
 
-function FileNameInput({ value, defaultValue, onChange }: { value: string, defaultValue?: string, onChange: React.ChangeEventHandler<HTMLInputElement> }) {
+function FileNameInput({ value, defaultValue, onChange, onKeyDown }: { value: string, defaultValue?: string, onChange: React.ChangeEventHandler<HTMLInputElement>, onKeyDown?: React.KeyboardEventHandler<HTMLInputElement> }) {
   return (
-    <input type='text' value={value} onChange={onChange} defaultValue={defaultValue} />
+    <input type='text' value={value} onChange={onChange} onKeyDown={onKeyDown} defaultValue={defaultValue} />
   )
 }
 
@@ -42,12 +42,28 @@ function Sidebar() {
     setNewFileName('');
   }
 
+  const handleCreateFileKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleCreateFile();
+    if (e.key === 'Escape') {
+      setIsCreating(false);
+      setNewFileName('');
+    }
+  }
+
+  const handleRenameFileKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleRenameFile();
+    if (e.key === 'Escape') {
+      setRenamingId(null);
+      setNewFileName('');
+    }
+  }
+
   return (
     <div>
       <div>
         { isCreating &&
           <div>
-            <FileNameInput value={newFileName} onChange={(e) => setNewFileName(e.target.value.trim())} />
+            <FileNameInput value={newFileName} onChange={(e) => setNewFileName(e.target.value.trim())} onKeyDown={handleCreateFileKeyDown} />
             <button onClick={handleCreateFile}>Create</button>
           </div>
         }
@@ -63,7 +79,7 @@ function Sidebar() {
                 {
                   renamingId === file.id ? (
                     <>
-                      <FileNameInput value={newFileName} defaultValue={file.name} onChange={(e) => setNewFileName(e.target.value.trim())} />
+                      <FileNameInput value={newFileName} defaultValue={file.name} onChange={(e) => setNewFileName(e.target.value.trim())} onKeyDown={handleRenameFileKeyDown} />
                       <button onClick={handleRenameFile}>rename</button>
                     </>
                   ) : (
