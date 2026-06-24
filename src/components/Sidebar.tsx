@@ -9,7 +9,7 @@ function FileNameInput({ value, defaultValue, onChange, onKeyDown }: { value: st
 }
 
 function Sidebar() {
-  const { files, activeFileId, createFile, updateFileContent, deleteFile, renameFile, setActive, activeFile } = useFilesStore();
+  const { files, createFile, deleteFile, renameFile, openFile } = useFilesStore();
   const [newFileName, setNewFileName] = useState<string>("");
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -84,7 +84,7 @@ function Sidebar() {
                     </>
                   ) : (
                     <>
-                      <div onClick={() => setActive(file.id)}>{file.name}</div>
+                      <div onClick={() => openFile(file.id)}>{file.name}</div>
                       <button onClick={() => toggleRename(file)}>rename file</button>
                       <button onClick={() => deleteFile(file.id)}>delete file</button>
                     </>
