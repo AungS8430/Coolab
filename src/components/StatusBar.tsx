@@ -1,4 +1,3 @@
-import type { CursorPosition } from '../types';
 import { useFilesStore } from '../store/files';
 
 function StatusBar() {
