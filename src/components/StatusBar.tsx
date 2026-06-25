@@ -1,7 +1,7 @@
 import type { CursorPosition } from '../types';
 import { useFilesStore } from '../store/files';
 
-function StatusBar({ cursorPosition }: { cursorPosition: CursorPosition | null }) {
+function StatusBar() {
   const { activeFile } = useFilesStore();
   const file = activeFile();
   return (
@@ -9,7 +9,7 @@ function StatusBar({ cursorPosition }: { cursorPosition: CursorPosition | null }
       <div>{file?.name}</div>
       <div>{file?.language}</div>
       <div>
-        {cursorPosition ? `Ln ${cursorPosition.line}, Col ${cursorPosition.column}` : 'Ln 1, Col 1'}
+        {file ? `Ln ${file.cursorPosition.line}, Col ${file.cursorPosition.column}` : 'Ln 1, Col 1'}
       </div>
     </div>
   )

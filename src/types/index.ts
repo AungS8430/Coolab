@@ -3,7 +3,8 @@ interface FileNode {
   name: string;
   language: string;
   content: string;
-  createdAt: number; 
+  createdAt: number;
+  cursorPosition: CursorPosition;
 }
 
 interface CursorPosition {

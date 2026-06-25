@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { FileNode } from '../types'
+import type { FileNode, CursorPosition } from '../types'
 
 interface FilesState {
   files: FileNode[];
@@ -13,6 +13,7 @@ interface FilesState {
   renameFile: (id: string, newName: string) => void;
   openFile: (id: string) => void;
   closeFile: (id: string) => void;
+  updateCursorPosition: (id: string, position: CursorPosition) => void;
   activeFile: () => FileNode | null;
 }
 
@@ -67,7 +68,8 @@ export const useFilesStore = create<FilesState>()(
           name,
           language: detectLanguage(name),
           content: '',
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          cursorPosition: { line: 0, column: 0 }
         };
         set((state) => ({ files: [...state.files, newFile], activeFileId: newFile.id, openFileIds: [...state.openFileIds, newFile.id] }));
       },
@@ -91,6 +93,11 @@ export const useFilesStore = create<FilesState>()(
       renameFile: (id: string, newName: string) => {
         set((state) => ({
           files: state.files.map(file => file.id === id ? { ...file, name: newName, language: detectLanguage(newName) } : file)
+        }))
+      },
+      updateCursorPosition: (id: string, position: CursorPosition) => {
+        set((state) => ({
+          files: state.files.map(file => file.id === id ? { ...file, cursorPosition: position} : file)
         }))
       }
     }),
