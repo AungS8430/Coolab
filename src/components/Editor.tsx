@@ -10,7 +10,7 @@ interface EditorProps {
   language: string;
   theme: EditorTheme;
   onChange: (value: string) => void;
-  onCursorMove?: (position: CursorPosition | undefined) => void;
+  onCursorMove?: (position: CursorPosition) => void;
   readOnly?: boolean;
 }
 
@@ -53,30 +53,30 @@ function Editor({
   }
   return (
     <MonacoEditor
-    height="100%"
-    language={language}
-    value={value}
-    onChange={handleChange}
-    onMount={handleMount}
-    theme={theme}
-    options={{
-      fontSize: 14,
-      fontFamily: '"JetBrains Mono", monospace',
-      fontLigatures: true,
-      readOnly,
-      minimap: { enabled: false },
-      scrollBeyondLastLine: false,
-      wordWrap: 'on',
-      tabSize: 2,
-      insertSpaces: true,
-      formatOnType: true,
-      formatOnPaste: true,
-      automaticLayout: true,
-      cursorBlinking: 'smooth',
-      cursorSmoothCaretAnimation: 'on',
-      smoothScrolling: true,
-      renderLineHighlight: 'gutter'
-    }}
+      height="100%"
+      language={language}
+      value={value}
+      onChange={handleChange}
+      onMount={handleMount}
+      theme={theme}
+      options={{
+        fontSize: 14,
+        fontFamily: '"JetBrains Mono", monospace',
+        fontLigatures: true,
+        readOnly,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: 'on',
+        tabSize: 2,
+        insertSpaces: true,
+        formatOnType: true,
+        formatOnPaste: true,
+        automaticLayout: true,
+        cursorBlinking: 'smooth',
+        cursorSmoothCaretAnimation: 'on',
+        smoothScrolling: true,
+        renderLineHighlight: 'gutter'
+      }}
     />
   )
 }
