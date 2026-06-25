@@ -11,22 +11,26 @@ function App() {
   const file = activeFile();
   return (
     <div className="App">
-      {
-        file ? (
-          <Editor
-            key={file.id}
-            value={file.content}
-            language={file.language}
-            theme='vs-dark'
-            onChange={(value) => updateFileContent(file.id, value)}
-            onCursorMove={(position) => updateCursorPosition(file.id, position)}
-          />
-        ) : (
-          <div>No file opened</div>
-        )
-      }
-      <Sidebar />
-      <Tabs />
+      <div>
+        <Sidebar />
+        <div>
+          <Tabs />
+          {
+            file ? (
+              <Editor
+                key={file.id}
+                value={file.content}
+                language={file.language}
+                theme='vs-dark'
+                onChange={(value) => updateFileContent(file.id, value)}
+                onCursorMove={(position) => updateCursorPosition(file.id, position)}
+              />
+            ) : (
+              <div>No file opened</div>
+            )
+          }
+        </div>
+      </div>
       <StatusBar />
     </div>
   )
