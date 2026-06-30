@@ -14,3 +14,5 @@ function useClickOutside(callback: () => void) {
 
   return ref;
 }
+
+export { useClickOutside };
