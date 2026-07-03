@@ -10,11 +10,11 @@ function App() {
 
   const file = activeFile();
   return (
-    <div className="App">
-      <div>
-        <Sidebar />
-        <div>
-          <Tabs />
+    <div className='flex h-screen w-screen overflow-hidden bg-floor text-primary'>
+      <Sidebar />
+      <div className='flex-1 flex flex-col divide-y divide-border overflow-hidden'>
+        <Tabs />
+        <div className='flex-1 overflow-hidden'>
           {
             file ? (
               <Editor
@@ -30,8 +30,9 @@ function App() {
             )
           }
         </div>
+
+        <StatusBar />
       </div>
-      <StatusBar />
     </div>
   )
 }
