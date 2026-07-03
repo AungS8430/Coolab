@@ -4,6 +4,7 @@ import { Editor } from './components/Editor';
 import { Sidebar } from './components/Sidebar';
 import { Tabs } from './components/Tabs';
 import { StatusBar } from './components/StatusBar';
+import { Empty } from './components/Empty';
 
 function App() {
   const { activeFile, updateFileContent, updateCursorPosition } = useFilesStore();
@@ -26,12 +27,12 @@ function App() {
                 onCursorMove={(position) => updateCursorPosition(file.id, position)}
               />
             ) : (
-              <div>No file opened</div>
+              <Empty />
             )
           }
         </div>
 
-        <StatusBar />
+        { file && <StatusBar /> }
       </div>
     </div>
   )
