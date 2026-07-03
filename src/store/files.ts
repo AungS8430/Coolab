@@ -63,6 +63,19 @@ export const useFilesStore = create<FilesState>()(
       },
 
       createFile: (name: string) => {
+        const { files } = get();
+        const existingFile = files.find((file) => file.name === name);
+
+        if (existingFile) {
+          set((state) => ({
+            activeFileId: existingFile.id,
+            openFileIds: state.openFileIds.includes(existingFile.id)
+              ? state.openFileIds
+              : [...state.openFileIds, existingFile.id]
+          }));
+          return;
+        }
+
         const newFile: FileNode = {
           id: crypto.randomUUID(),
           name,
