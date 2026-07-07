@@ -17,6 +17,13 @@ function Empty() {
     setIsCreating(false);
     setNewFileName('');
   }
+  const handleCreateFileKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleCreateFile();
+    if (e.key === 'Escape') {
+      setIsCreating(false);
+      setNewFileName('');
+    }
+  }
   return (
     <div className='flex flex-col justify-center items-center gap-4 h-full'>
       <div className='p-4 bg-muted/50 rounded-xl drop-shadow-2xl'>
@@ -28,7 +35,7 @@ function Empty() {
       </div>
       { isCreating ? (
           <div className='flex items-center'>
-            <input value={newFileName} onChange={(e) => setNewFileName(e.target.value.trim())} className='rounded-l-lg overflow-scroll border border-border rounded-sm w-48 focus:ring-0 focus:outline-none py-1 px-3' />
+            <input value={newFileName} onChange={(e) => setNewFileName(e.target.value.trim())} onKeyDown={handleCreateFileKeyDown} className='rounded-l-lg overflow-scroll border border-border rounded-sm w-48 focus:ring-0 focus:outline-none py-1 px-3' />
             <button className='aspect-square h-full flex justify-center items-center bg-muted/30 hover:bg-muted/10 transition-all' onClick={handleCancelCreateFile}><X className='size-em' /></button>
             <button className='aspect-square h-full flex justify-center items-center bg-primary hover:bg-primary/80 transition-all rounded-r-lg' onClick={handleCreateFile}><Plus className='size-em text-black' /></button>
           </div>
