@@ -5,6 +5,9 @@ interface FileNode {
   content: string;
   createdAt: number;
   cursorPosition: CursorPosition;
+  parentId: string | null;
+  isFolder: boolean;
+  isExpanded: boolean;
 }
 
 interface CursorPosition {

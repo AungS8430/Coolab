@@ -7,12 +7,15 @@ interface FilesState {
   activeFileId: string | null;
   openFileIds: string[];
 
-  createFile: (name: string) => void;
+  createFile: (name: string, parentId: string | null) => void;
   updateFileContent: (id: string, content: string) => void;
   deleteFile: (id: string) => void;
   renameFile: (id: string, newName: string) => void;
   openFile: (id: string) => void;
   closeFile: (id: string) => void;
+  createFolder: (name: string, parentId: string | null) => void;
+  deleteFolder: (id: string) => void;
+  renameFolder: (id: string, newName: string) => void;
   updateCursorPosition: (id: string, position: CursorPosition) => void;
   activeFile: () => FileNode | null;
 }
@@ -62,9 +65,9 @@ export const useFilesStore = create<FilesState>()(
         return files.find(file => file.id === activeFileId) || null;
       },
 
-      createFile: (name: string) => {
+      createFile: (name: string, parentId: string | null) => {
         const { files } = get();
-        const existingFile = files.find((file) => file.name === name);
+        const existingFile = files.find((file) => file.name === name && file.parentId === parentId);
 
         if (existingFile) {
           set((state) => ({
@@ -82,20 +85,23 @@ export const useFilesStore = create<FilesState>()(
           language: detectLanguage(name),
           content: '',
           createdAt: Date.now(),
-          cursorPosition: { line: 0, column: 0 }
+          cursorPosition: { line: 1, column: 1 },
+          parentId,
+          isFolder: false,
+          isExpanded: false
         };
         set((state) => ({ files: [...state.files, newFile], activeFileId: newFile.id, openFileIds: [...state.openFileIds, newFile.id] }));
       },
       updateFileContent: (id: string, content: string) => {
         set((state) => ({
-          files: state.files.map(file => file.id === id ? { ...file, content } : file)
+          files: state.files.map(file => (file.id === id && !file.isFolder) ? { ...file, content } : file)
         }))
       },
       deleteFile: (id: string) => {
         set((state) => {
           const index = state.openFileIds.findIndex((fileId: string) => fileId === id);
           const remainingOpen = state.openFileIds.filter((fileId: string) => fileId !== id);
-          const remaining = state.files.filter((file) => file.id !== id);
+          const remaining = state.files.filter((file) => file.id !== id || file.isFolder);
           return {
             files: remaining,
             openFileIds: remainingOpen,
@@ -105,7 +111,63 @@ export const useFilesStore = create<FilesState>()(
       },
       renameFile: (id: string, newName: string) => {
         set((state) => ({
-          files: state.files.map(file => file.id === id ? { ...file, name: newName, language: detectLanguage(newName) } : file)
+          files: state.files.map(file => (file.id === id && !file.isFolder) ? { ...file, name: newName, language: detectLanguage(newName) } : file)
+        }))
+      },
+      createFolder: (name: string, parentId: string | null) => {
+        const { files } = get();
+        const existingFolder = files.find((file) => file.name === name && file.isFolder && file.parentId === parentId);
+
+        if (existingFolder) {
+          set((state) => ({
+            files: state.files.map(file => file.id === existingFolder.id && file.isFolder ? { ...file, isExpanded: true } : file)
+          }))
+          return;
+        }
+
+        const newFolder: FileNode = {
+          id: crypto.randomUUID(),
+          name,
+          language: '',
+          content: '',
+          createdAt: Date.now(),
+          cursorPosition: { line: 1, column: 1 },
+          parentId,
+          isFolder: true,
+          isExpanded: false
+        }
+        set((state) => ({
+          files: [...state.files, newFolder]
+        }))
+      },
+      deleteFolder: (id: string) => {
+        set((state) => {
+          const getAllDescendantIds = (parentId: string): string[] => {
+            const children = state.files.filter(f => f.parentId === parentId)
+            return [
+              parentId,
+              ...children.flatMap(c =>
+                c.isFolder ? getAllDescendantIds(c.id) : [c.id]
+              )
+            ]
+          }
+
+          const idsToDelete = new Set(getAllDescendantIds(id))
+          const remainingOpen = state.openFileIds.filter(fId => !idsToDelete.has(fId))
+          const index = state.openFileIds.findIndex(fId => idsToDelete.has(fId))
+
+          return {
+            files: state.files.filter(f => !idsToDelete.has(f.id)),
+            openFileIds: remainingOpen,
+            activeFileId: idsToDelete.has(state.activeFileId ?? '')
+              ? (remainingOpen[index - 1] ?? remainingOpen[0] ?? null)
+              : state.activeFileId
+          }
+        })
+      },
+      renameFolder: (id: string, newName: string) => {
+        set((state) => ({
+          files: state.files.map((file) => (file.id === id && file.isFolder) ? { ...file, name: newName } : file)
         }))
       },
       updateCursorPosition: (id: string, position: CursorPosition) => {
