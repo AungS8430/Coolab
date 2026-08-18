@@ -9,7 +9,7 @@ function Empty() {
   const [newFileName, setNewFileName] = useState<string>('');
 
   const handleCreateFile = () => {
-    if (newFileName.trim()) createFile(newFileName.trim());
+    if (newFileName.trim()) createFile(newFileName.trim(), null);
     setIsCreating(false);
     setNewFileName('');
   }

@@ -6,6 +6,7 @@ interface FilesState {
   files: FileNode[];
   activeFileId: string | null;
   openFileIds: string[];
+  expandedFolderIds: string[];
 
   createFile: (name: string, parentId: string | null) => void;
   updateFileContent: (id: string, content: string) => void;
@@ -16,7 +17,9 @@ interface FilesState {
   createFolder: (name: string, parentId: string | null) => void;
   deleteFolder: (id: string) => void;
   renameFolder: (id: string, newName: string) => void;
+  toggleFolder: (id: string) => void;
   updateCursorPosition: (id: string, position: CursorPosition) => void;
+  getNearestDir: (id: string) => string | null;
   activeFile: () => FileNode | null;
 }
 
@@ -46,18 +49,27 @@ export const useFilesStore = create<FilesState>()(
       files: [],
       activeFileId: null,
       openFileIds: [],
+      expandedFolderIds: [],
 
       openFile: (id: string) => {
         set((state) => ({ openFileIds: (state.openFileIds.includes(id) ? state.openFileIds : [...state.openFileIds, id]), activeFileId: id }));
       },
       closeFile: (id: string) => {
         set((state) => {
-          const index = state.openFileIds.findIndex((fileId: string) => fileId === id);
           const remaining = state.openFileIds.filter((fileId: string) => fileId !== id);
+          const currentIndex = state.openFileIds.findIndex((fileId: string) => fileId === id);
+
+          if (state.activeFileId !== id) {
+            return { openFileIds: remaining };
+          }
+
+          const previous = state.openFileIds.slice(0, currentIndex).reverse().find((fileId) => fileId !== id);
+          const next = state.openFileIds.slice(currentIndex + 1).find((fileId) => fileId !== id);
+
           return {
             openFileIds: remaining,
-            activeFileId: state.activeFileId === id ? (remaining[index - 1] ?? remaining[0] ?? null) : state.activeFileId
-          }
+            activeFileId: previous ?? next ?? remaining[0] ?? null,
+          };
         })
       },
       activeFile: () => {
@@ -88,7 +100,6 @@ export const useFilesStore = create<FilesState>()(
           cursorPosition: { line: 1, column: 1 },
           parentId,
           isFolder: false,
-          isExpanded: false
         };
         set((state) => ({ files: [...state.files, newFile], activeFileId: newFile.id, openFileIds: [...state.openFileIds, newFile.id] }));
       },
@@ -99,13 +110,24 @@ export const useFilesStore = create<FilesState>()(
       },
       deleteFile: (id: string) => {
         set((state) => {
-          const index = state.openFileIds.findIndex((fileId: string) => fileId === id);
           const remainingOpen = state.openFileIds.filter((fileId: string) => fileId !== id);
-          const remaining = state.files.filter((file) => file.id !== id || file.isFolder);
+          const currentIndex = state.openFileIds.findIndex((fileId: string) => fileId === id);
+          const remaining = state.files.filter((file) => file.id !== id);
+
+          if (state.activeFileId !== id) {
+            return {
+              files: remaining,
+              openFileIds: remainingOpen,
+            };
+          }
+
+          const previous = state.openFileIds.slice(0, currentIndex).reverse().find((fileId) => fileId !== id);
+          const next = state.openFileIds.slice(currentIndex + 1).find((fileId) => fileId !== id);
+
           return {
             files: remaining,
             openFileIds: remainingOpen,
-            activeFileId: state.activeFileId === id ? (remainingOpen[index - 1] ?? remainingOpen[0] ?? null) : state.activeFileId
+            activeFileId: previous ?? next ?? remainingOpen[0] ?? null,
           }
         })
       },
@@ -120,7 +142,7 @@ export const useFilesStore = create<FilesState>()(
 
         if (existingFolder) {
           set((state) => ({
-            files: state.files.map(file => file.id === existingFolder.id && file.isFolder ? { ...file, isExpanded: true } : file)
+            expandedFolderIds: state.expandedFolderIds.includes(existingFolder.id) ? state.expandedFolderIds : [...state.expandedFolderIds, existingFolder.id]
           }))
           return;
         }
@@ -134,7 +156,6 @@ export const useFilesStore = create<FilesState>()(
           cursorPosition: { line: 1, column: 1 },
           parentId,
           isFolder: true,
-          isExpanded: false
         }
         set((state) => ({
           files: [...state.files, newFolder]
@@ -154,14 +175,25 @@ export const useFilesStore = create<FilesState>()(
 
           const idsToDelete = new Set(getAllDescendantIds(id))
           const remainingOpen = state.openFileIds.filter(fId => !idsToDelete.has(fId))
-          const index = state.openFileIds.findIndex(fId => idsToDelete.has(fId))
+
+          if (!idsToDelete.has(state.activeFileId ?? '')) {
+            return {
+              files: state.files.filter(f => !idsToDelete.has(f.id)),
+              openFileIds: remainingOpen,
+              activeFileId: state.activeFileId,
+              expandedFolderIds: state.expandedFolderIds.filter(fId => !idsToDelete.has(fId))
+            }
+          }
+
+          const deletedIndex = state.openFileIds.findIndex(fId => idsToDelete.has(fId))
+          const previous = state.openFileIds.slice(0, deletedIndex).reverse().find(fId => !idsToDelete.has(fId))
+          const next = state.openFileIds.slice(deletedIndex + 1).find(fId => !idsToDelete.has(fId))
 
           return {
             files: state.files.filter(f => !idsToDelete.has(f.id)),
             openFileIds: remainingOpen,
-            activeFileId: idsToDelete.has(state.activeFileId ?? '')
-              ? (remainingOpen[index - 1] ?? remainingOpen[0] ?? null)
-              : state.activeFileId
+            activeFileId: previous ?? next ?? remainingOpen[0] ?? null,
+            expandedFolderIds: state.expandedFolderIds.filter(fId => !idsToDelete.has(fId))
           }
         })
       },
@@ -169,6 +201,20 @@ export const useFilesStore = create<FilesState>()(
         set((state) => ({
           files: state.files.map((file) => (file.id === id && file.isFolder) ? { ...file, name: newName } : file)
         }))
+      },
+      toggleFolder: (id: string) => {
+        set((state) => ({
+          expandedFolderIds: state.expandedFolderIds.includes(id) ? state.expandedFolderIds.filter((folderId) => folderId !== id) : [...state.expandedFolderIds, id]
+        }))
+      },
+      getNearestDir: (id: string) => {
+        const { files } = get();
+
+        const curr = files.find(file => file.id === id);
+        if (!curr) return null;
+
+        if (curr.isFolder) return curr.id;
+        return curr.parentId;
       },
       updateCursorPosition: (id: string, position: CursorPosition) => {
         set((state) => ({

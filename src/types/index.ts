@@ -7,7 +7,6 @@ interface FileNode {
   cursorPosition: CursorPosition;
   parentId: string | null;
   isFolder: boolean;
-  isExpanded: boolean;
 }
 
 interface CursorPosition {
