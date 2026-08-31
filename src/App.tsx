@@ -19,7 +19,7 @@ function App() {
           {
             file ? (
               <Editor
-                key={file.id}
+                path={`file:///${file.name}`}
                 value={file.content}
                 language={file.language}
                 theme='vs-dark'

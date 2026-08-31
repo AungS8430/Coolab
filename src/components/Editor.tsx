@@ -6,6 +6,7 @@ import type * as Monaco from 'monaco-editor';
 import type { CursorPosition, EditorTheme } from '../types';
 
 interface EditorProps {
+  path: string;
   value: string;
   language: string;
   theme: EditorTheme;
@@ -15,6 +16,7 @@ interface EditorProps {
 }
 
 function Editor({
+  path,
   value,
   language,
   theme,
@@ -140,6 +142,16 @@ function Editor({
 
     monaco.editor.setTheme('collab-dark')
 
+    fetch('https://unpkg.com/@types/react@18/index.d.ts')
+      .then(r => r.text())
+      .then(text => {
+        monaco.languages.typescript.typescriptDefaults.addExtraLib(text, 'file:///node_modules/@types/react/index.d.ts')
+      });
+
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: false,
+      noSyntaxValidation: false
+    })
 
     editor.focus();
   }
@@ -149,12 +161,12 @@ function Editor({
   }
   return (
     <MonacoEditor
+      path={path}
       height="100%"
       language={language}
       value={value}
       onChange={handleChange}
       onMount={handleMount}
-      theme={theme}
       options={{
         fontSize: 14,
         fontFamily: '"JetBrains Mono", monospace',
