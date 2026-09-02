@@ -153,6 +153,13 @@ function Editor({
       noSyntaxValidation: false
     })
 
+    editor.addAction({
+      id: 'noop-save',
+      label: 'Save',
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
+      run: () => {}
+    })
+
     editor.focus();
   }
 
