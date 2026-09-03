@@ -38,6 +38,7 @@ interface TreeNodeProps {
   renamingId: string | null
   cursorOn: string | null
   setCursorOn: (id: string | null) => void
+  getNearestDir: (id: string) => string | null
   renameRef: React.RefObject<HTMLDivElement | null>
   handleOpenFile: (file: FileNode) => void
   newFileName: string
@@ -67,7 +68,7 @@ function sortFiles(a: FileNode, b: FileNode) {
 function TreeNode(props: TreeNodeProps) {
   const {
     node, depth, files, isCreatingFile, isCreatingFolder,
-    renamingId, cursorOn, setCursorOn, renameRef, handleOpenFile,
+    renamingId, cursorOn, setCursorOn, getNearestDir, renameRef, handleOpenFile,
     newFileName, setNewFileName, setRenamingId, handleRenameFile,
     handleRenameFileKeyDown, toggleRename, toggleCreateFile, handleCreateFile,
     handleCreateFileKeyDown, toggleCreateFolder, handleCreateFolder,
@@ -153,7 +154,7 @@ function TreeNode(props: TreeNodeProps) {
       </div>
 
       {/* Create file input under this node */}
-      {isCreatingFile && cursorOn === node.id && (
+      {isCreatingFile && (cursorOn ? getNearestDir(cursorOn) : null) === node.id && (
         <div ref={renameRef} style={{ paddingLeft: childPaddingLeft }} className='flex flex-row text-[12.5px] pr-1.5 py-0.5 h-7 gap-1'>
           <FileNameInput value={newFileName} onChange={(e) => setNewFileName(e.target.value.trim())} onKeyDown={handleCreateFileKeyDown} />
           <button onClick={toggleCreateFile} className='hover:bg-file-active my-auto p-1 rounded-md aspect-square text-xs transition-all'><X className='size-em' /></button>
@@ -162,7 +163,7 @@ function TreeNode(props: TreeNodeProps) {
       )}
 
       {/* Create folder input under this node */}
-      {isCreatingFolder && cursorOn === node.id && (
+      {isCreatingFolder && (cursorOn ? getNearestDir(cursorOn) : null) === node.id && (
         <div ref={renameRef} style={{ paddingLeft: childPaddingLeft }} className='flex flex-row text-[12.5px] pr-1.5 py-0.5 h-7 gap-1'>
           <FileNameInput value={newFileName} onChange={(e) => setNewFileName(e.target.value.trim())} onKeyDown={handleCreateFolderKeyDown} />
           <button onClick={toggleCreateFolder} className='hover:bg-file-active my-auto p-1 rounded-md aspect-square text-xs transition-all'><X className='size-em' /></button>
@@ -187,7 +188,7 @@ function Sidebar() {
   const {
     files, createFile, deleteFile, renameFile, openFile,
     toggleFolder, createFolder, renameFolder, deleteFolder,
-    activeFileId, expandedFolderIds,
+    activeFileId, expandedFolderIds, getNearestDir
   } = useFilesStore()
 
   const [newFileName, setNewFileName] = useState<string>('')
@@ -289,7 +290,7 @@ function Sidebar() {
 
   const sharedProps = {
     files, isCreatingFile, isCreatingFolder, renamingId,
-    cursorOn, setCursorOn, renameRef, handleOpenFile,
+    cursorOn, setCursorOn, getNearestDir, renameRef, handleOpenFile,
     newFileName, setNewFileName, setRenamingId, handleRenameFile,
     handleRenameFileKeyDown, toggleRename, toggleCreateFile, handleCreateFile,
     handleCreateFileKeyDown, toggleCreateFolder, handleCreateFolder,
@@ -317,14 +318,14 @@ function Sidebar() {
       <div className='flex-1 overflow-y-auto pt-1' ref={sidebarRef}>
 
         {/* Root-level create inputs */}
-        {isCreatingFile && cursorOn === null && (
+        {isCreatingFile && (cursorOn ? getNearestDir(cursorOn) : null) === null && (
           <div ref={renameRef} className='flex flex-row text-[12.5px] px-1.5 py-0.5 h-7 gap-1'>
             <FileNameInput value={newFileName} onChange={(e) => setNewFileName(e.target.value.trim())} onKeyDown={handleCreateFileKeyDown} />
             <button onClick={toggleCreateFile} className='hover:bg-file-active my-auto p-1 rounded-md aspect-square text-xs transition-all'><X className='size-em' /></button>
             <button onClick={handleCreateFile} className='hover:bg-file-active my-auto p-1 rounded-md aspect-square text-xs transition-all'><Plus className='size-em' /></button>
           </div>
         )}
-        {isCreatingFolder && cursorOn === null && (
+        {isCreatingFolder && (cursorOn ? getNearestDir(cursorOn) : null) === null && (
           <div ref={renameRef} className='flex flex-row text-[12.5px] px-1.5 py-0.5 h-7 gap-1'>
             <FileNameInput value={newFileName} onChange={(e) => setNewFileName(e.target.value.trim())} onKeyDown={handleCreateFolderKeyDown} />
             <button onClick={toggleCreateFolder} className='hover:bg-file-active my-auto p-1 rounded-md aspect-square text-xs transition-all'><X className='size-em' /></button>
